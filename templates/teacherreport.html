@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: black; /* Set background color */
+            color: white; /* Set text color */
+        }
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 20px;
+            align-items: center;
+        }
+        .chart-box {
+            text-align: center;
+        }
+        canvas {
+            max-width: 500px; /* Adjusted width */
+            max-height: 350px; /* Adjusted height */
+            margin: 20px auto;
+            display: block;
+        }
+        table {
+            width: 60%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #333; /* Dark gray for contrast */
+            color: white;
+        }
+        th, td {
+            border: 1px solid white;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #555; /* Lighter gray for headers */
+        }
+        .back-button {
+    display: inline-block;
+    text-decoration: none;
+    color: inherit;
+    font-weight: bold;
+    padding: 8px 12px;
+    background-color: #d88181;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    position: absolute;
+    left: 10px; /* Adjust for proper positioning */
+    top: 30px; /* Ensures it stays at the top */
+}
+
+.back-button:hover {
+    background-color: #ddd;
+}
+
+    </style>
+</head>
+<body>
+    <h1>📊 Performance Report</h1>
+    <a href="{{ url_for('admin') }}" class="back-button">⬅ Back to Dashboard</a>
+    <div>
+        <h2>Total Students: <span id="totalStudents"></span></h2>
+    </div>
+
+    <h2>📌 Subject: <span id="subjectName"></span></h2>
+
+    <h3>📋 Student Performance Table</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Range</th>
+                <th>Unit Test 1</th>
+                <th>Unit Test 2</th>
+            </tr>
+        </thead>
+        <tbody id="performanceTable">
+            <!-- Data will be inserted dynamically -->
+        </tbody>
+    </table>
+
+    <h3>📈 Average Marks Comparison</h3>
+    <canvas id="avgMarksChart" style="width: 700px; height: 400px;"></canvas>  <!-- Increased chart size -->
+
+    <h3>📊 Student Performance in Unit Test 1 & Unit Test 2</h3>
+    <div class="chart-container">
+        <div class="chart-box">
+            <h3>📌 Unit Test 1</h3>
+            <canvas id="performanceU1Chart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>📌 Unit Test 2</h3>
+            <canvas id="performanceU2Chart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('/report-data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert("Unauthorized access!");
+                        return;
+                    }
+
+                    document.getElementById("totalStudents").textContent = data.total_students;
+
+                    let subject = Object.keys(data.average_marks)[0].split("-U")[0];
+                    let avgMarksU1 = data.average_marks[subject + "-U1"];
+                    let avgMarksU2 = data.average_marks[subject + "-U2"];
+
+                    document.getElementById("subjectName").textContent = subject;
+
+                    // Populate table data
+                    let tableBody = document.getElementById("performanceTable");
+                    let ranges = ["40-50", "30-40", "20-30", "Below 20"];
+                    
+                    tableBody.innerHTML = ranges.map(range => `
+                        <tr>
+                            <td>${range}</td>
+                            <td>${data.mark_ranges_u1[range] || 0}</td>
+                            <td>${data.mark_ranges_u2[range] || 0}</td>
+                        </tr>
+                    `).join("");
+
+                    // 📊 Bar Chart for Average Marks Comparison (Larger)
+                                        // 📊 Bar Chart for Average Marks Comparison (Larger)
+                                        let ctx1 = document.getElementById("avgMarksChart").getContext("2d");
+                    new Chart(ctx1, {
+                        type: "bar",
+                        data: {
+                            labels: ["Unit Test 1", "Unit Test 2"],
+                            datasets: [{
+                                label: "Average Marks",
+                                data: [avgMarksU1, avgMarksU2],
+                                backgroundColor: ["blue", "green"]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    ticks: { color: "white" }, // X-Axis Label Color
+                                    grid: { color: "#666" }  // Grid Line Color
+                                },
+                                y: {
+                                    ticks: { color: "white" }, // Y-Axis Label Color
+                                    grid: { color: "#666" }  // Grid Line Color
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    labels: { color: "white" } // Legend Color
+                                }
+                            }
+                        }
+                    });
+
+                    // 📊 Pie Chart for Student Performance in Unit Test 1
+                    let ctx2 = document.getElementById("performanceU1Chart").getContext("2d");
+                    new Chart(ctx2, {
+                        type: "pie",
+                        data: {
+                            labels: ranges,
+                            datasets: [{
+                                data: Object.values(data.mark_ranges_u1),
+                                backgroundColor: ["green", "blue", "orange", "red"]
+                            }]
+                        },
+                        options: {
+                            plugins: {
+                                legend: {
+                                    labels: { color: "white" } // Legend Color
+                                }
+                            }
+                        }
+                    });
+
+                    // 📊 Pie Chart for Student Performance in Unit Test 2
+                    let ctx3 = document.getElementById("performanceU2Chart").getContext("2d");
+                    new Chart(ctx3, {
+                        type: "pie",
+                        data: {
+                            labels: ranges,
+                            datasets: [{
+                                data: Object.values(data.mark_ranges_u2),
+                                backgroundColor: ["green", "blue", "orange", "red"]
+                            }]
+                        },
+                        options: {
+                            plugins: {
+                                legend: {
+                                    labels: { color: "white" } // Legend Color
+                                }
+                            }
+                        }
+                    });
+
+                })
+                .catch(error => console.error("Error loading report data:", error));
+        });
+    </script>
+</body>
+</html>

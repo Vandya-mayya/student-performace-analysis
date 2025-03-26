@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Marks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgba(0, 0, 0, 0.8);
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        h2 {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 60%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        input {
+            width: 80px;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        .save-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+        .save-btn:hover {
+            background-color: #218838;
+        }
+        .back-button {
+    display: inline-block;
+    text-decoration: none;
+    color: inherit;
+    font-weight: bold;
+    padding: 8px 12px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    position: absolute;
+    left: 10px; /* Adjust for proper positioning */
+    top: 30px; /* Ensures it stays at the top */
+}
+
+.back-button:hover {
+    background-color: #ddd;
+}
+
+
+    .back-button:hover {
+        background-color: #ddd;
+    }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('admin') }}" class="back-button">⬅ Back to Dashboard</a>
+    <h2>Update Marks for Subject: {{ subject }}</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>USN</th>
+                <th>Name</th>
+                
+                <th>{{subject}}-UT1</th>
+                <th>{{subject}}-UT2</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ student["Student Id"] }}</td>
+                <td>{{ student["Name"] }}</td>
+
+               
+            
+
+                <td>
+                    
+                    <input type="number" value="{{ student['UT1'] }}" class="marks-input" data-student-id="{{ student['Student Id'] }}" data-test="U1">
+                </td>
+                <td>
+                    <input type="number" value="{{ student['UT2'] }}" class="marks-input" data-student-id="{{ student['Student Id'] }}" data-test="U2">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button class="save-btn" onclick="saveMarks()">Save Marks</button>
+
+    <script>
+        // Store original marks when the page loads
+        let originalMarks = {};  
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('.marks-input').forEach(input => {
+                let studentID = input.getAttribute('data-student-id');
+                let testType = input.getAttribute('data-test');  // UT1 or UT2
+                let columnName = `{{ subject }}-${testType}`;
+                // Example: "Software Testing - UT1"
+
+                if (!originalMarks[studentID]) {
+                    originalMarks[studentID] = {};
+                }
+                originalMarks[studentID][columnName] = input.value;  // Store initial values
+            });
+        });
+        
+/*
+        function saveMarks() {
+    let updatedMarks = {};
+
+    document.querySelectorAll('.marks-input').forEach(input => {
+        let studentID = input.getAttribute('data-student-id');
+        let testType = input.getAttribute('data-test');  
+        let columnName = `{{ subject }}-${testType}`;  
+        let marks = input.value;
+
+        if (marks !== originalMarks[studentID][columnName]) {
+            if (!updatedMarks[studentID]) {
+                updatedMarks[studentID] = {};
+            }
+            updatedMarks[studentID][columnName] = marks;
+        }
+    });
+
+    console.log("Updated Marks Data:", updatedMarks); // Debugging log
+
+    Object.keys(updatedMarks).forEach(studentID => {
+        fetch(`/update-student/${studentID}`, {  
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedMarks[studentID])
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Server Response:", data); // Debugging log
+            if (data.error) {
+                alert("Error: " + data.error);
+            } else {
+                alert(`Updated marks for ${studentID}`);
+                Object.assign(originalMarks[studentID], updatedMarks[studentID]);
+            }
+        })
+        .catch(error => console.error('Error updating marks:', error));
+    });
+}*/
+
+
+ // Store original marks for comparison
+ let subjectName = "{{ subject }}";
+ function saveMarks() {
+    let updatedMarks = [];
+
+    document.querySelectorAll('.marks-input').forEach(input => {
+        let studentID = input.getAttribute('data-student-id');
+        let testType = input.getAttribute('data-test');  
+        let columnName = `${subjectName}-${testType}`;  // Use Flask variable passed to JS
+        let marks = input.value.trim();
+
+        if (originalMarks[studentID][columnName] !== marks) {
+            let studentData = updatedMarks.find(s => s["Student Id"] === studentID);
+            if (!studentData) {
+                studentData = { "Student Id": studentID };
+                updatedMarks.push(studentData);
+            }
+            studentData[columnName] = marks;
+        }
+    });
+
+    if (updatedMarks.length === 0) {
+        alert("No changes made!");
+        return;
+    }
+
+    console.log("Updated Marks Data:", updatedMarks); // Debugging log
+
+    fetch('/update-students', {  
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedMarks)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Server Response:", data); // Debugging log
+        if (data.error) {
+            alert("Error: " + data.error);
+        } else {
+            alert("Marks updated successfully!");
+            updatedMarks.forEach(student => {
+                Object.assign(originalMarks[student["Student Id"]], student);
+            });
+        }
+    })
+    .catch(error => console.error('Error updating marks:', error));
+}
+
+
+    </script>
+</body>
+</html>

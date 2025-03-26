@@ -1,0 +1,51 @@
+<h2>Update Marks for Subject: {{ subject }}</h2>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>USN</th>
+            <th>Name</th>
+            <th>{{ subject }} - UT1</th>
+            <th>{{ subject }} - UT2</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in students %}
+        <tr>
+            <td>{{ student["USN"] }}</td>
+            <td>{{ student["Name"] }}</td>
+            <td>
+                <input type="number" value="{{ student['UT1'] }}" class="marks-input" data-student-id="{{ student['USN'] }}" data-test="UT1">
+            </td>
+            <td>
+                <input type="number" value="{{ student['UT2'] }}" class="marks-input" data-student-id="{{ student['USN'] }}" data-test="UT2">
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<button onclick="saveMarks()">Save</button>
+
+<script>
+function saveMarks() {
+    let updatedMarks = [];
+
+    document.querySelectorAll('.marks-input').forEach(input => {
+        let studentID = input.getAttribute('data-student-id');
+        let testType = input.getAttribute('data-test'); // UT1 or UT2
+        let marks = input.value;
+
+        updatedMarks.push({ studentID, testType, marks });
+    });
+
+    fetch('/update-marks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ marks: updatedMarks })
+    })
+    .then(response => response.json())
+    .then(data => alert(data.message))
+    .catch(error => console.error('Error updating marks:', error));
+}
+</script>

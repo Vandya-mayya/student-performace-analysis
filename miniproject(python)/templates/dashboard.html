@@ -1,0 +1,400 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+   
+
+    <style>
+        /* Background */
+        body {
+    position: relative;
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    height: 100vh; /* Ensure positioning is relative for overlay */
+    background-image: url('static/images/View.jpg'); /* Add your background image */
+    background-size: cover;
+    background-position: center;
+    color: white;
+    font-family: 'Arial', sans-serif;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* Make the background image fixed and the overlay cover the entire page */
+body::before {
+    content: ''; /* Empty content */
+    position: fixed; /* Fixed positioning ensures it stays in place */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Dark overlay with 50% opacity */
+    z-index: -1; /* Ensure the overlay is behind the content */
+}
+
+/* Other page content styling */
+.content {
+    position: relative;
+    z-index: 1;
+    padding: 20px;
+}
+
+#graphOptions {
+    position: absolute; /* Position the options overlay */
+    top: 260px; /* Adjust the position based on your layout */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Adjust to perfectly center */
+    display: none; /* Keep it hidden initially */
+    z-index: 10; /* Ensure it's on top of the content */
+    width: 80%; /* Adjust width as needed */
+    text-align: center;
+}
+
+#graphOptions .col-6 {
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+/* Adjusting the cards and layout */
+.container.my-5 {
+    position: relative; /* Ensure the container doesn’t get pushed when options appear */
+}
+        /* Navbar */
+        .navbar-custom {
+            background-color: #2c3e50;
+        }
+
+        .navbar-brand {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .navbar-nav .nav-link {
+            font-size: 1.1em;
+            color: white;
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        /* Graph Container */
+        .graph-container {
+            margin-top: 90px;
+            text-align: center;
+            display: none;
+            
+        }
+
+        /* Graph and Description */
+        .graph-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 50px;
+            margin-bottom: 60px;
+        }
+
+        .graph-card img {
+            border: 5px solid #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            width: 600px;
+            height: 600px;
+            transition: transform 0.3s ease-in-out;
+            
+        }
+
+        .graph-card img:hover {
+            transform: scale(1.05);
+        }
+
+        .graph-description {
+            color: #333;
+            font-size: 1.2em;
+            text-align: left;
+            max-width: 600px;
+            line-height: 1.8;
+            font-weight: 400;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .graph-description h5 {
+            color: #2575fc;
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* Card Styles */
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card p {
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .card h4 {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* Graph Container Animation */
+        .graph-container img {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        /* Responsive design */
+        @media screen and (max-width: 768px) {
+            .graph-card img {
+                width: 100%;
+                height: auto;
+            }
+
+            .graph-description {
+                margin-top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white" href="#">Student Dashboard</a>
+            <div class="collapse navbar-collapse justify-content-end">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/">
+                            <i class="bi bi-person-circle" style="font-size: 1.5em;"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="/">Logout</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ url_for('view_report') }}">View Report</a> 
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Welcome Section -->
+    <section class="welcome-section container my-5">
+        <h1>Welcome, {{ name }} (USN: {{ usn }})</h1>
+        <p class="lead">Analyze your performance, compare metrics, and generate insightful reports.</p>
+    </section>
+
+    <!-- Cards Section -->
+    <div class="container my-5">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="card p-3 bg-primary text-white" onclick="toggleGraphVisibility('attendance');">
+                    <h4>View Attendance</h4>
+                    <p>Track your attendance and analyze trends.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-4 bg-success text-white" onclick="toggleGraphVisibility('unitTest');">
+                    <h4>Unit Test Marks</h4>
+                    <p>Compare your unit test performance.</p>
+                </div>
+            </div>
+
+  
+
+
+
+<!-- Graph Generation Options (Initially Hidden) -->
+<div id="graphOptions"  style="display:none;">
+    <div class="col-6" style="padding-right: 15px;">
+        <div onclick="toggleGraphVisibility('finalUnitTest')" class="card p-3 bg-info text-white">
+            <h5>Generate Final Unit Test Graph</h5>
+        </div>
+    </div>
+    <div class="col-6" style="padding-left: 15px;">
+        <div onclick="toggleGraphVisibility('subjectWise')" class="card p-3 bg-info text-white">
+            <h5>Generate Subject-wise Graph</h5>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Display the Graphs -->
+<div class="container my-5 graph-container" id="dynamicGraphContainer" style="display: none;">
+    <h2 class="text-white">Performance Graphs</h2>
+    <img id="finalUnitTestGraphImg" src="" alt="Final Unit Test Graph" class="img-fluid my-3" style="display: none;">
+    <img id="subjectWiseGraphImg" src="" alt="Subject-wise Graph" class="img-fluid my-3" style="display: none;">
+</div>
+
+
+            <div class="col-md-4">
+                <div class="card p-3 bg-warning text-white" onclick="toggleGraphVisibility('technical');">
+                    <h4>Technical Skills</h4>
+                    <p>Evaluate your technical skills across subjects.</p>
+                </div>
+            </div>
+
+            <div class="row justify-content-center mt-3"> <!-- Add margin-top here -->
+                <div class="col-md-4">
+                    <div class="card p-3 bg-info text-white text-center" onclick="toggleGraphVisibility('sem');">
+                        <h4>Semester Wise Marks</h4>
+                        <p>Evaluate your semester marks.</p>
+                    </div>
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+
+    <!-- Hidden graph container -->
+    <div class="container my-7 graph-container" id="graphContainer">
+        
+
+        <!-- Attendance Graph -->
+        <div class="graph-card" id="attendanceGraph">
+            <div>
+                <img src="{{ attendance_img }}" alt="Attendance Pie Chart">
+            </div>
+            <div class="graph-description">
+                <h5>Suggested Improvements:</h5>
+                <p>This graph displays your overall attendance rate. If your attendance is low, try to attend more classes regularly. You can set reminders or try active participation in discussions to stay motivated.</p>
+            </div>
+        </div>
+
+        <!-- Unit Test Comparison Graph -->
+        <div class="graph-card" id="unitTestGraph">
+            <div>
+                <img src="{{ unit_test_img }}" alt="Unit Test Comparison">
+            </div>
+            <div class="graph-description">
+                <h5>Suggested Improvements:</h5>
+                <p>This graph compares your performance across different unit tests. If certain subjects have lower marks, consider dedicating more time for revision, practice tests, or seek help from your peers or professors.</p>
+            </div>
+        </div>
+
+       <!-- Technical Skills Graph -->
+<div class="graph-card" id="technicalGraph">
+    <div>
+        <img src="{{ skills_img }}" alt="Technical Skills Radar Chart">
+    </div>
+    <div class="graph-description">
+        <h5>Suggested Improvements:</h5>
+        <p>This line chart shows your technical skills across various subjects. Focus on improving weaker areas by working on more projects, attending workshops, or completing online courses in those areas.</p>
+    </div>
+</div>
+<div class="graph-card" id="semWiseGraph">
+    <div>
+        <img src="{{ sem_wise_img }}" alt="Technical Skills Radar Chart">
+    </div>
+    
+</div>
+
+
+<!-- Final Unit Test Marks Graph -->
+<div class="graph-card" id="finalUnitTestGraph">
+    <div>
+        <img src="{{ final_unit_test_img }}" alt="Final Unit Test Marks Graph" id="finalUnitTestGraphImg" >
+    </div>
+    <div class="graph-description">
+        <h5>Suggested Improvements:</h5>
+        <p>This graph shows the overall performance in the final unit test. Aim to focus on improving subjects with lower marks to boost your overall performance.</p>
+    </div>
+</div>
+
+<!-- Subject-wise Marks Distribution Graph -->
+<div class="graph-card" id="subjectWiseGraph">
+    <div>
+        <img src="{{ subject_wise_img }}" alt="Subject-wise Marks Distribution" id="subjectWiseGraphImg" >
+    </div>
+    <div class="graph-description">
+        <h5>Suggested Improvements:</h5>
+        <p>This pie chart shows the marks distribution across all subjects. Focus on strengthening subjects with lower marks to maintain a balanced performance.</p>
+    </div>
+</div>
+
+<!-- Graph Options (Buttons) -->
+
+<!-- JavaScript for dynamically displaying graphs -->
+<script>
+    
+
+    
+    
+
+    function toggleGraphVisibility(graphType) {
+        var graphContainer = document.getElementById('graphContainer');
+        var attendanceGraph = document.getElementById('attendanceGraph');
+        var unitTestGraph = document.getElementById('unitTestGraph');
+        var technicalGraph = document.getElementById('technicalGraph');
+        var finalUnitTestGraph = document.getElementById('finalUnitTestGraph');
+        var subjectWiseGraph = document.getElementById('subjectWiseGraph');
+        var semWiseGraph = document.getElementById('semWiseGraph');
+        var graphOptions = document.getElementById('graphOptions');  // For the buttons
+
+        // Hide all graphs first
+        attendanceGraph.style.display = 'none';
+        unitTestGraph.style.display = 'none';
+        technicalGraph.style.display = 'none';
+        finalUnitTestGraph.style.display = 'none';
+        subjectWiseGraph.style.display = 'none';
+        semWiseGraph.style.display = 'none';
+
+        // Hide the graph options (buttons) by default
+        graphOptions.style.display = 'none';
+
+        if (graphType === 'finalUnitTest' || graphType === 'subjectWise') {
+        graphOptions.style.display = 'flex';
+        } else {
+        graphOptions.style.display = 'none';
+       }
+        // Show the selected graph
+        if (graphType === 'attendance') {
+            attendanceGraph.style.display = 'block';
+        } else if (graphType === 'unitTest') {
+            unitTestGraph.style.display = 'block';
+            graphOptions.style.display = 'flex'; // Show the buttons only for Unit Test Marks
+        } else if (graphType === 'technical') {
+            technicalGraph.style.display = 'block';
+        } else if (graphType === 'finalUnitTest') {
+            finalUnitTestGraph.style.display = 'block';
+        }
+        else if (graphType === 'sem') {
+                semWiseGraph.style.display = 'block';
+        } else if (graphType === 'subjectWise') {
+            subjectWiseGraph.style.display = 'block';
+        }
+
+        graphContainer.style.display = 'block';  // Reveal graph container
+    }
+</script>
+

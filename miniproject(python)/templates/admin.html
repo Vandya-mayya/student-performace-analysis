@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        /* Ensure body and html take full height */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: black; /* Full black background */
+    color: white; /* Ensures text is visible */
+}
+
+/* Make container full screen */
+.container {
+    min-height: 100vh; /* Full viewport height */
+    width: 100%; /* Full width */
+    background: rgba(0, 0, 0, 0.8); /* Black with transparency */
+    padding: 20px;
+    border-radius: 10px;
+    animation: fadeIn 1s ease-in-out;
+}
+
+/* Table styling */
+.table {
+    background-color: rgba(255, 255, 255, 0.1); /* Slight transparency for better readability */
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+        body {
+            background: url('https://source.unsplash.com/1600x900/?education,technology') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Welcome,{{session['teacher']}}</h2>
+        
+        <a href="{{url_for('edit_marks')}}" class="update-button">Update Marks</a>-->
+    </div>
+    <div class="container mt-4">
+        <h2 class="text-center">📊 Teacher Dashboard</h2>
+        <div class="alert alert-success text-center" id="highestScorer">Loading highest scorer...</div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <h4>Student Details</h4>
+                <table class="table table-bordered table-striped table-dark">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Attendance</th>
+                            <th>1st sem marks</th>
+                            <th>2nd sem marks</th>
+                            <th>Iot-U1</th>
+                            <th>Tot-U2</th>
+                            <th>DAP-U1</th>
+                            <th>DAP-u2</th>
+                            <th>Software Testing-U1</th>
+                            <th>Software Testing-U2</th>
+                            <th>Nosql-U1</th>
+                            <th>NoSQL-U2</th>
+                            <th>Java</th>
+                            <th>Python</th>
+                            <th>Web Technology</th>
+                            <th>SQL</th>
+                            
+                           
+                           
+                          
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTable">
+                        <tr><td colspan="8" class="text-center">Loading student data...</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- Update Form (Initially Hidden) -->
+<div id="updateForm" style="display: none;">
+    <h3>Update Student</h3>
+    <input type="hidden" id="updateStudentID">
+    <label>Name:</label> <input type="text" id="updateName"><br>
+    <label>1st Sem Marks:</label> <input type="text" id="update1stSem"><br>
+    <label>2nd Sem Marks:</label> <input type="text" id="update2ndSem"><br>
+    <label>Attendance Rate:</label> <input type="text" id="updateAttendance"><br>
+    <label>Iot-U1:</label> <input type="text" id="updateIotU1"><br>
+    <label>Software Testing-U1:</label> <input type="text" id="updateSTU1"><br>
+    <label>DAP-U1:</label> <input type="text" id="updateDAPU1"><br>
+    <label>Nosql-U1:</label> <input type="text" id="updateNosqlU1"><br>
+    <label>Nosql-U2:</label> <input type="text" id="updateNosqlU2"><br>
+    <label>Iot-U2:</label> <input type="text" id="updateIotU2"><br>
+    <label>Software Testing-U2:</label> <input type="text" id="updateSTU2"><br>
+    <label>DAP-U2:</label> <input type="text" id="updateDAPU2"><br>
+    <label>Java:</label> <input type="text" id="updateJava"><br>
+    <label>Python:</label> <input type="text" id="updatePython"><br>
+    <label>Web Technology:</label> <input type="text" id="updateWebTech"><br>
+    <label>SQL:</label> <input type="text" id="updateSQL"><br>
+    <button onclick="updateStudent()">Save</button>
+    <button onclick="document.getElementById('updateForm').style.display='none'">Cancel</button>
+</div>
+            </div>
+            
+            <div class="graph-card" id="performanceGraph">
+                <h2>Overall Student Performance</h2>
+                <img id="overallGraph" src="" alt="Overall Percentage Graph">
+               
+            </div>
+        
+            <div class="graph-card">
+                <h2>1st Sem, 2nd Sem & Attendance</h2>
+                <img id="groupedBarGraph" src="" alt="Grouped Bar Chart">
+                
+            </div>
+        
+            
+       
+        </div>
+    </div>
+    <script>
+
+            document.addEventListener("DOMContentLoaded", function () {
+            fetchStudents();
+            fetchPerformanceGraph();
+            fetchHighestScorer();
+            });
+        function fetchStudents() {
+            fetch('/students')
+            .then(response => response.json())
+            .then(data => {
+                let tableBody = document.getElementById("studentsTable");
+               tableBody.innerHTML = ""; // Clear old data
+
+              data.forEach(student => {
+               let row = `<tr>
+                        <td>${student.Name}</td>
+                        <td>${student["Student Id"]}</td>
+                        <td>${student["Attendence Rate"]}%</td>
+                        <td>${student["1st sem marks"]}</td>
+                        <td>${student["2ns sem marks"]}</td>
+                        <td>${student["Iot-U1"]}</td>
+                        <td>${student["Iot-U2"]}</td>
+                         <td>${student["Software Testing-U1"]}</td>
+                         <td>${student["Software Testing-U2"]}</td>
+                         <td>${student["DAP-U1"]}</td>
+                         <td>${student["DAP-U2"]}</td>
+                         <td>${student["Nosql-U1"]}</td>
+                          <td>${student["Nosql-U2"]}</td>
+                      <td>${student["Java"]}</td>
+                      <td>${student["Python"]}</td>
+                      <td>${student["SQL"]}</td>
+                      <td>${student["Web Technology"]}</td>
+                     
+
+
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+                //document.getElementById("studentsTable").innerHTML = tableContent;
+            })
+            .catch(error => console.error('Error fetching students:', error));
+        }
+    function fetchPerformanceGraph() {
+        fetch('/performance-graph')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById("overallGraph").src = data.graph;
+                        document.getElementById("groupedBarGraph").src = data.grouped_bar_graph;
+                    })
+                    .catch(error => console.error('Error loading graphs:', error));
+
+                }
+
+        window.onload = fetchStudents;
+    
+
+   
+        
+
+        
+
+    function fetchHighestScorer() {
+    fetch('/highest-scorer')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('highestScorer').innerHTML = 
+                `🏆 Highest Scorer: <b>${data.Name}</b> with <b>${data["Total Score"]}</b> total score! 🎉`;
+        })
+        .catch(error => console.error('Error fetching highest scorer:', error));
+}
+
+      
+
+
+
+
+        function saveStudent() {
+            let studentData = {
+                ID: document.getElementById('studentID').value || Date.now(),
+                Name: document.getElementById('name').value,
+                Attendance: parseInt(document.getElementById('attendance').value),
+                "Unit Test Marks": parseInt(document.getElementById('unitMarks').value),
+                "Semester Marks": parseInt(document.getElementById('semesterMarks').value),
+                "Technical Skills": parseInt(document.getElementById('technicalSkills').value),
+            };
+
+            fetch('/add-student', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(studentData)
+            })
+            .then(() => {
+                alert("Student data saved successfully!");
+                fetchStudentDetails();
+                fetchPerformanceGraph();
+                fetchHighestScorer();
+                document.getElementById('studentForm').reset();
+            })
+            .catch(error => console.error('Error saving student:', error));
+        }
+
+
+
+
+
+
+function showUpdateForm(studentID) {
+    // Fetch student data by ID
+    fetch(`/student/${studentID}`)
+        .then(response => response.json())
+        .then(student => {
+            document.getElementById("updateForm").style.display = "block"; // Show form
+            document.getElementById("updateStudentID").value = student["Student Id"];
+            document.getElementById("updateName").value = student.Name;
+            document.getElementById("update1stSem").value = student["1st sem marks"];
+            document.getElementById("update2ndSem").value = student["2nd sem marks"];
+            document.getElementById("updateAttendance").value = student["Attendance Rate"];
+            document.getElementById("updateIotU1").value = student["Iot-U1"];
+            document.getElementById("updateSTU1").value = student["Software Testing-U1"];
+            document.getElementById("updateDAPU1").value = student["DAP-U1"];
+            document.getElementById("updateNosqlU1").value = student["Nosql-U1"];
+            document.getElementById("updateNosqlU2").value = student["Nosql-U2"];
+            document.getElementById("updateIotU2").value = student["Iot-U2"];
+            document.getElementById("updateSTU2").value = student["Software Testing-U2"];
+            document.getElementById("updateDAPU2").value = student["DAP-U2"];
+            document.getElementById("updateJava").value = student.Java;
+            document.getElementById("updatePython").value = student.Python;
+            document.getElementById("updateWebTech").value = student["Web Technology"];
+            document.getElementById("updateSQL").value = student.SQL;
+        });
+}
+function updateStudent(studentID) {
+    console.log("Student ID received:", studentID); 
+    //let studentID = document.getElementById("updateStudentID").value;
+    let updatedData = {
+        Name: document.getElementById("updateName").value,
+        "1st sem marks": parseInt(document.getElementById("update1stSem").value) || 0,
+        "2nd sem marks": parseInt(document.getElementById("update2ndSem").value) || 0,
+        "Attendance Rate": parseInt(document.getElementById("updateAttendance").value) || 0,
+        "Iot-U1": parseInt(document.getElementById("updateIotU1").value) || 0,
+        "Software Testing-U1": parseInt(document.getElementById("updateSTU1").value) || 0,
+        "DAP-U1": parseInt(document.getElementById("updateDAPU1").value) || 0,
+        "Nosql-U1": parseInt(document.getElementById("updateNosqlU1").value) || 0,
+        "Nosql-U2": parseInt(document.getElementById("updateNosqlU2").value) || 0,
+        "Iot-U2": parseInt(document.getElementById("updateIotU2").value) || 0,
+        "Software Testing-U2": parseInt(document.getElementById("updateSTU2").value) || 0,
+        "DAP-U2": parseInt(document.getElementById("updateDAPU2").value) || 0,
+        Java: parseInt(document.getElementById("updateJava").value) || 0,
+        Python: parseInt(document.getElementById("updatePython").value) || 0,
+        "Web Technology": parseInt(document.getElementById("updateWebTech").value) || 0,
+        SQL: parseInt(document.getElementById("updateSQL").value) || 0
+    };
+
+    fetch(`/update-student/${studentID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert("Student data updated successfully!");
+        document.getElementById("updateForm").style.display = "none";
+        fetchStudents(); 
+        fetchPerformanceGraph();
+        fetchHighestScorer();
+    })
+    .catch(error => console.error("Error updating student:", error));
+}
+
+
+    </script>
+</body>
+</html>
+ 
