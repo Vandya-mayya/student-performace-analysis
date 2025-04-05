@@ -122,22 +122,26 @@ html, body {
                     <button class="btn btn-primary" id="saveButton" style="display: none;">Save</button>
                 </table>
 
-                <!-- Update Form (Initially Hidden) -->
-
+             
             </div>
             
-            <div class="graph-card" id="performanceGraph">
-                <h2>Overall Student Performance</h2>
-                <img id="overallGraph" src="" alt="Overall Percentage Graph">
-               
-            </div>
-        
-            <div class="graph-card">
-                <h2>1st Sem, 2nd Sem & Attendance</h2>
-                <img id="groupedBarGraph" src="" alt="Grouped Bar Chart">
-                
-            </div>
-        
+<div class="text-center mt-4">
+    <button class="btn btn-success" id="showGraphsBtn">📊 Show Performance Graphs</button>
+</div>
+
+<!-- Graphs (initially hidden) -->
+<div id="graphsSection" style="display: none;">
+    <div class="graph-card" id="performanceGraph">
+        <h2>Overall Student Performance</h2>
+        <img id="overallGraph" src="" alt="Overall Percentage Graph">
+    </div>
+
+    <div class="graph-card">
+        <h2>1st Sem, 2nd Sem & Attendance</h2>
+        <img id="groupedBarGraph" src="" alt="Grouped Bar Chart">
+    </div>
+</div>
+
             
        
         </div>
@@ -180,80 +184,6 @@ fetch('teacher-role')  // Replace with actual API endpoint
         .catch(error => console.error("Error fetching user role:", error));
 
 
- /*           
-function fetchStudents() {
-    fetch('/students')
-        .then(response => response.json())
-        .then(studentData => {
-            fetch('/teacher-role')  // Fetch the teacher's role
-                .then(response => response.json())
-                .then(roleData => {
-                    let tableBody = document.getElementById("studentsTable");
-                    tableBody.innerHTML = ""; // Clear old data
-
-                    const isClassAdvisor = roleData.role === "Class Advisor"; // Check role
-
-                    studentData.forEach(student => {
-                        let row = `<tr>
-                            <td>${student.Name}</td>
-                            <td>${student["Student Id"]}</td>
-                            
-                            <td class="editable ${isClassAdvisor ? 'can-edit' : ''}" 
-                                ${isClassAdvisor ? 'contenteditable="true"' : ''} 
-                                data-id="${student['Student Id']}" 
-                                data-field="Attendence Rate">
-                                ${student["Attendence Rate"]}
-                            </td>
-
-                            <td>${student["1st Sem Marks"]}</td>
-                            <td>${student["2nd Sem Marks"]}</td>
-                            <td>${student["IoT-U1"]}</td>
-                            <td>${student["IoT-U2"]}</td>
-                            <td>${student["DAP-U1"]}</td>
-                            <td>${student["DAP-U2"]}</td>
-                            <td>${student["Software Testing-U1"]}</td>
-                            <td>${student["Software Testing-U2"]}</td>
-                            <td>${student["NoSQL-U1"]}</td>
-                            <td>${student["NoSQL-U2"]}</td>
-                            
-                            <td class="editable skill" contenteditable="true" data-id="${student['Student Id']}" data-field="Java">${student["Java"]}</td>
-                            <td class="editable skill" contenteditable="true" data-id="${student['Student Id']}" data-field="Python">${student["Python"]}</td>
-                            <td class="editable skill" contenteditable="true" data-id="${student['Student Id']}" data-field="SQL">${student["SQL"]}</td>
-                            <td class="editable skill" contenteditable="true" data-id="${student['Student Id']}" data-field="Web Technology">${student["Web Technology"]}</td>
-                        </tr>`;
-                        tableBody.innerHTML += row;
-                    });
-
-                    // Attach event listener for attendance (only for Class Advisor)
-                    if (isClassAdvisor) {
-                        document.querySelectorAll(".can-edit").forEach(cell => {
-                            cell.addEventListener("blur", function () {
-                                let studentId = this.getAttribute("data-id");
-                                let field = this.getAttribute("data-field");
-                                let newValue = this.innerText.trim(); // Trim spaces
-
-                                updateStudentData(studentId, field, newValue);
-                            });
-                        });
-                    }
-
-                    // Attach event listener for skills (Java, Python, SQL, Web Tech)
-                    document.querySelectorAll(".skill").forEach(cell => {
-                        cell.addEventListener("blur", function () {
-                            let studentId = this.getAttribute("data-id");
-                            let field = this.getAttribute("data-field");
-                            let newValue = this.innerText.trim(); // Trim spaces
-
-                            updateStudentData(studentId, field, newValue);
-                        });
-                    });
-
-                })
-                .catch(error => console.error("Error fetching teacher role:", error));
-        })
-        .catch(error => console.error("Error fetching student data:", error));
-}
-*/
 let editedData = {}; // Store edited values temporarily
 const saveButton = document.getElementById("saveButton");
 
@@ -357,20 +287,7 @@ saveButton.addEventListener("click", saveEditedData);
         window.onload = fetchStudents;
     
 
-   
-        
 
-        
-/*
-    function fetchHighestScorer() {
-    fetch('/highest-scorer')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('highestScorer').innerHTML = 
-                `🏆 Highest Scorer: <b>${data.Name}</b> with <b>${data["Total Score"]}</b> total score! 🎉`;
-        })
-        .catch(error => console.error('Error fetching highest scorer:', error));
-}*/
 function fetchHighestScorers() {
     fetch('/highest-scorers')  // API endpoint
         .then(response => response.json())
@@ -497,7 +414,12 @@ function saveUpdates() {
             .catch(error => console.error("Error saving updates:", error));
         }
 
-
+        document.getElementById("showGraphsBtn").addEventListener("click", function () {
+    let graphSection = document.getElementById("graphsSection");
+    graphSection.style.display = "block";
+    graphSection.scrollIntoView({ behavior: "smooth" });
+    fetchPerformanceGraph();
+});
     </script>
 </body>
 </html>
